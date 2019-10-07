@@ -1,0 +1,194 @@
+---
+title: "pkgfilecache: Manage optional data for GNU R packages"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Managing external package data with pkgfilecache}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+# Managing external package data with pkgfilecache
+
+## Audience
+
+This is intended for GNU R package developers who want to give package users the option to effortlessly download and mange optional data for their package.
+
+## Background
+
+When package authors want to ship data for their package, they will quickly hit the package size limit on CRAN (which is 5 MB as of September 2019). The solution is to host the data elsewhere and download it on demand when the user requests it, then store it for future use. This is what pkgfilecache allows you to do. You can put your files onto a web server of your choice, take the MD5 sums, and have pkgfilecache download them locally unless they already exist and have the correct MD5 hash. Users can then access the data in a convenient way, similar to accessing files shipped in `inst/extdata` via `system.file`. They can also erase the data if it is no longer needed.
+
+Technically, this package permanently stores the files under a subdir of the directory returned by `rappdirs::user_data_dir`. For my Ubuntu Linux system, that is `/home/myuser/.local/share`, but the exact location is operating system-dependent and you should not care about it.
+
+## Prequisites
+
+You have put some file onto a server that can be accessed by the public via HTTP or HTTPS. Optionally, you know their MD5 checksums.
+
+In the following example, we will assume that the package you develop (the one that requires the extra data in the package cache), is called `yourpackage`. And that you have these two files on the server:
+
+
+* file1.txt, md5=35261471bcd198583c3805ee2a543b1f  
+* file2.txt, md5=85ffec2e6efb476f1ee1e3e7fddd86de
+
+
+# Using the functions in your script
+
+You can use this package to manage any files you want in normal application code, and this is explained here. If you are a package author and want to give your users the option to effortlessly download optional data for your package, make sure to also read the section 'Giving users the option to download extra package data' below.
+
+
+## Making files from a remote server available locally (on the user computer)
+
+
+Let's first make files hosted on our server available on the client, in the package cache. First, define the files you want:
+
+
+```{r, eval = FALSE}
+    library("pkgfilecache")
+
+    pkg_info = get_pkg_info("yourpackage");   # Something to identify the package that uses the package file cache.
+    
+    local_filenames = c("file1.txt", "file2.txt");    # How the files should be called in the local package file cache
+    urls = c("https://your.server/yourpackage/large_file1.txt", "https://your.server/yourpackage/large_file2.txt"); # Remote URLs where to download files from
+    md5sums = c("35261471bcd198583c3805ee2a543b1f", "85ffec2e6efb476f1ee1e3e7fddd86de");    # MD5 checksums. Optional but recommended.
+```
+
+Now it is time to make them available:
+
+```{r, eval = FALSE}
+    res = ensure_files_available(pkg_info, local_filenames, urls, md5sums=md5sums);
+```
+
+The return value `res` is a named list with several entries. The field `res$file_status` is a logical vector indicating for each file whether it now exists locally. Note that the function will first check to see whether the files are already in the package cache. If you supplied md5sums, they will also be checked. Only files which did not pass the check will be downloaded, so it is save to call this function every time you want to make sure that the files exist. (E.g., in example code you give). 
+
+You can also get a list of the filename which are now available (no matter whether they have been downloaded or where already available) from `res$available`. And you can get a list of file which should have been downloaded, but for which retrieval failed, from `res$missing`.
+
+Typically you would wrap the code above into a function within your package and call it something like `download_optional_data()`, see below.
+
+
+## Accessing a file from the local package cache
+
+Let's now get the full path for a file in the package cash, so that we can use it in our application:
+
+
+```{r, eval = FALSE}
+    wanted_local_file = "file1.txt";
+    file_path = get_filepath(pkg_info, wanted_local_file, mustWork=TRUE);
+```
+
+
+## Removing files you do not need anymore from the package cache
+
+
+```{r, eval = FALSE}
+local_filenames = c("file1.txt", "file2.txt");
+deleted = remove_cached_files(pkg_info, local_filenames);
+```
+
+
+The return value `deleted` is a logical vector indicating for each file whether it was deleted. IMPORTANT: Files that did not exist in the first place were not deleted. To check which files really exist, read on.
+
+
+## Manually checking whether a file exists in the package cache
+
+Do one of the following, depending on whether you want MD5 sum checks:
+
+```{r, eval = FALSE}
+files_exist = are_files_available(pkg_info, local_filenames);  # no MD5 check
+files_exist_and_have_correct_md5 = are_files_available(pkg_info, local_filenames, md5sums=md5sums);  # with MD5 check
+```
+
+
+The return values are logical vectors indicating for each file whether it exists (and, in the second example, whether the MD5 sum is as expected).
+
+# Giving users the option to download extra package data
+
+This part is for package authors and gives a suggestion for an interface that allows users to download optional data for your package. Make sure you have read the section 'Using the functions in your script' before reading on. 
+
+## Interface suggestion
+
+I recommend to have the following public functions in your package, which users can then call if they need to manage optional package data:
+
+* `download_optional_data()`: This function should download the optional data if needed (i.e., only if they do not exist already).
+* `list_optional_data()`: This function should return a vector of local files in the package cache that are currently available.
+* `get_optional_data_file(filename, mustWork=TRUE)`: This function should return the full path to a file in the package cache, based on the filename.
+* `delete_all_optional_data()`: This function should delete the optional data from the package cache to free up disk space.
+
+## Example implementation of the interface for your package
+
+Here are example implementations for the functions above. You can copy and paste them, all you need to do afterwards is:
+
+* in all functions: replace `yourpackage` with the name of your package.
+* in the `download_optional_data` function: also replace the `local_files`, `urls` and `md5sums` with your optional data information.
+
+Here are the functions:
+
+```{r, eval = FALSE}
+#' @title Download optional data for this package if required.
+#'
+#' @description Ensure that the optioanl data is available locally in the package cache. Will try to download the data only if it is not available.
+#' 
+#' @return Named list. The list has entries: "available": vector of strings. The names of the files that are available in the local file cache. You can access them using get_optional_data_file(). "missing": vector of strings. The names of the files that this function was unable to retrieve.
+#'
+#' @export
+download_optional_data <- function() {
+  pkg_info = pkgfilecache::get_pkg_info("yourpackage");        # to identify the package using the cache
+  
+  # Replace these with your optional data files.
+  local_filenames = c("file1.txt", "file2.txt");    # How the files should be called in the local package file cache
+  urls = c("https://your.server/yourpackage/large_file1.txt", "https://your.server/yourpackage/large_file2.txt"); # Remote URLs where to download files from
+  md5sums = c("35261471bcd198583c3805ee2a543b1f", "85ffec2e6efb476f1ee1e3e7fddd86de");    # MD5 checksums. Optional but recommended.
+  
+  cfiles = pkgfilecache::ensure_files_available(pkg_info, local_filenames, urls, md5sums=md5sums);
+  cfiles$file_status = NULL;
+  return(cfiles);
+}
+
+#' @title Get file names available in package cache.
+#'
+#' @description Get file names of optional data files which are available in the local package cache. You can access these files with get_optional_data_file().
+#' 
+#' @return vector of strings. The file names available, relative to the package cache.
+#'
+#' @export
+list_optional_data <- function() {
+  pkg_info = pkgfilecache::get_pkg_info("yourpackage");
+  return(pkgfilecache::list_available(pkg_info));
+}
+
+
+#' @title Access a single file from the package cache by its file name.
+#'
+#' @param filename, string. The filename of the file in the package cache.
+#'
+#' @param mustWork, logical. Whether an error should be created if the file does not exist. If mustWork=FALSE and the file does not exist, the empty string is returned.
+#'
+#' @return string. The full path to the file in the package cache. Use this in your application code to open the file.
+#'
+#' @export
+get_optional_data_filepath <- function(filename, mustWork=TRUE) {
+  pkg_info = pkgfilecache::get_pkg_info("yourpackage");
+  return(pkgfilecache::get_filepath(pkg_info, filename, mustWork=mustWork));
+}
+
+
+#' @title Delete all data in the package cache.
+#'
+#' @return integer. The return value of the unlink() call: 0 for success, 1 for failure. See the unlink() documentation for details.
+#'
+#' @export
+delete_all_optional_data <- function() {
+  pkg_info = pkgfilecache::get_pkg_info("yourpackage");
+  return(pkgfilecache::erase_cache(pkg_info));
+}
+```
+
+
+
+## Limitations and Suggestions
+
+* Let the users of your package decide whether or not they want the optional data, by supplying an API as suggested above.
+* This needs the internet to work (at least once) for downloading. You should check the return values of the functions and be prepared for the case that the downloads failed.
+* Currently, writing files to a local directory structure (sub directories) under the package cache dir is not supported. All files go directly into that dir.
+* Nothing is special about the local package cache dir, and of course there is no way to enforce that other packages or applications do not mess with it and the data in it. You should never store secrets of any kind in that directory!
+* It is your responsibility not to write absurd amounts of data into that directory and tell the user in advance how much data you are roughly about to download.
+
+

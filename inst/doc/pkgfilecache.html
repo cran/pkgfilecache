@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+
+<title>pkgfilecache: Manage optional data for GNU R packages</title>
+
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css" data-origin="pandoc">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(data-line-number);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#header {
+text-align: center;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">pkgfilecache: Manage optional data for GNU R packages</h1>
+
+
+
+<div id="managing-external-package-data-with-pkgfilecache" class="section level1">
+<h1>Managing external package data with pkgfilecache</h1>
+<div id="audience" class="section level2">
+<h2>Audience</h2>
+<p>This is intended for GNU R package developers who want to give package users the option to effortlessly download and mange optional data for their package.</p>
+</div>
+<div id="background" class="section level2">
+<h2>Background</h2>
+<p>When package authors want to ship data for their package, they will quickly hit the package size limit on CRAN (which is 5 MB as of September 2019). The solution is to host the data elsewhere and download it on demand when the user requests it, then store it for future use. This is what pkgfilecache allows you to do. You can put your files onto a web server of your choice, take the MD5 sums, and have pkgfilecache download them locally unless they already exist and have the correct MD5 hash. Users can then access the data in a convenient way, similar to accessing files shipped in <code>inst/extdata</code> via <code>system.file</code>. They can also erase the data if it is no longer needed.</p>
+<p>Technically, this package permanently stores the files under a subdir of the directory returned by <code>rappdirs::user_data_dir</code>. For my Ubuntu Linux system, that is <code>/home/myuser/.local/share</code>, but the exact location is operating system-dependent and you should not care about it.</p>
+</div>
+<div id="prequisites" class="section level2">
+<h2>Prequisites</h2>
+<p>You have put some file onto a server that can be accessed by the public via HTTP or HTTPS. Optionally, you know their MD5 checksums.</p>
+<p>In the following example, we will assume that the package you develop (the one that requires the extra data in the package cache), is called <code>yourpackage</code>. And that you have these two files on the server:</p>
+<ul>
+<li>file1.txt, md5=35261471bcd198583c3805ee2a543b1f<br />
+</li>
+<li>file2.txt, md5=85ffec2e6efb476f1ee1e3e7fddd86de</li>
+</ul>
+</div>
+</div>
+<div id="using-the-functions-in-your-script" class="section level1">
+<h1>Using the functions in your script</h1>
+<p>You can use this package to manage any files you want in normal application code, and this is explained here. If you are a package author and want to give your users the option to effortlessly download optional data for your package, make sure to also read the section ‘Giving users the option to download extra package data’ below.</p>
+<div id="making-files-from-a-remote-server-available-locally-on-the-user-computer" class="section level2">
+<h2>Making files from a remote server available locally (on the user computer)</h2>
+<p>Let’s first make files hosted on our server available on the client, in the package cache. First, define the files you want:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1">    <span class="kw">library</span>(<span class="st">&quot;pkgfilecache&quot;</span>)</a>
+<a class="sourceLine" id="cb1-2" data-line-number="2"></a>
+<a class="sourceLine" id="cb1-3" data-line-number="3">    pkg_info =<span class="st"> </span><span class="kw">get_pkg_info</span>(<span class="st">&quot;yourpackage&quot;</span>);   <span class="co"># Something to identify the package that uses the package file cache.</span></a>
+<a class="sourceLine" id="cb1-4" data-line-number="4">    </a>
+<a class="sourceLine" id="cb1-5" data-line-number="5">    local_filenames =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;file1.txt&quot;</span>, <span class="st">&quot;file2.txt&quot;</span>);    <span class="co"># How the files should be called in the local package file cache</span></a>
+<a class="sourceLine" id="cb1-6" data-line-number="6">    urls =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;https://your.server/yourpackage/large_file1.txt&quot;</span>, <span class="st">&quot;https://your.server/yourpackage/large_file2.txt&quot;</span>); <span class="co"># Remote URLs where to download files from</span></a>
+<a class="sourceLine" id="cb1-7" data-line-number="7">    md5sums =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;35261471bcd198583c3805ee2a543b1f&quot;</span>, <span class="st">&quot;85ffec2e6efb476f1ee1e3e7fddd86de&quot;</span>);    <span class="co"># MD5 checksums. Optional but recommended.</span></a></code></pre></div>
+<p>Now it is time to make them available:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1">    res =<span class="st"> </span><span class="kw">ensure_files_available</span>(pkg_info, local_filenames, urls, <span class="dt">md5sums=</span>md5sums);</a></code></pre></div>
+<p>The return value <code>res</code> is a named list with several entries. The field <code>res$file_status</code> is a logical vector indicating for each file whether it now exists locally. Note that the function will first check to see whether the files are already in the package cache. If you supplied md5sums, they will also be checked. Only files which did not pass the check will be downloaded, so it is save to call this function every time you want to make sure that the files exist. (E.g., in example code you give).</p>
+<p>You can also get a list of the filename which are now available (no matter whether they have been downloaded or where already available) from <code>res$available</code>. And you can get a list of file which should have been downloaded, but for which retrieval failed, from <code>res$missing</code>.</p>
+<p>Typically you would wrap the code above into a function within your package and call it something like <code>download_optional_data()</code>, see below.</p>
+</div>
+<div id="accessing-a-file-from-the-local-package-cache" class="section level2">
+<h2>Accessing a file from the local package cache</h2>
+<p>Let’s now get the full path for a file in the package cash, so that we can use it in our application:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" data-line-number="1">    wanted_local_file =<span class="st"> &quot;file1.txt&quot;</span>;</a>
+<a class="sourceLine" id="cb3-2" data-line-number="2">    file_path =<span class="st"> </span><span class="kw">get_filepath</span>(pkg_info, wanted_local_file, <span class="dt">mustWork=</span><span class="ot">TRUE</span>);</a></code></pre></div>
+</div>
+<div id="removing-files-you-do-not-need-anymore-from-the-package-cache" class="section level2">
+<h2>Removing files you do not need anymore from the package cache</h2>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" data-line-number="1">local_filenames =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;file1.txt&quot;</span>, <span class="st">&quot;file2.txt&quot;</span>);</a>
+<a class="sourceLine" id="cb4-2" data-line-number="2">deleted =<span class="st"> </span><span class="kw">remove_cached_files</span>(pkg_info, local_filenames);</a></code></pre></div>
+<p>The return value <code>deleted</code> is a logical vector indicating for each file whether it was deleted. IMPORTANT: Files that did not exist in the first place were not deleted. To check which files really exist, read on.</p>
+</div>
+<div id="manually-checking-whether-a-file-exists-in-the-package-cache" class="section level2">
+<h2>Manually checking whether a file exists in the package cache</h2>
+<p>Do one of the following, depending on whether you want MD5 sum checks:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1">files_exist =<span class="st"> </span><span class="kw">are_files_available</span>(pkg_info, local_filenames);  <span class="co"># no MD5 check</span></a>
+<a class="sourceLine" id="cb5-2" data-line-number="2">files_exist_and_have_correct_md5 =<span class="st"> </span><span class="kw">are_files_available</span>(pkg_info, local_filenames, <span class="dt">md5sums=</span>md5sums);  <span class="co"># with MD5 check</span></a></code></pre></div>
+<p>The return values are logical vectors indicating for each file whether it exists (and, in the second example, whether the MD5 sum is as expected).</p>
+</div>
+</div>
+<div id="giving-users-the-option-to-download-extra-package-data" class="section level1">
+<h1>Giving users the option to download extra package data</h1>
+<p>This part is for package authors and gives a suggestion for an interface that allows users to download optional data for your package. Make sure you have read the section ‘Using the functions in your script’ before reading on.</p>
+<div id="interface-suggestion" class="section level2">
+<h2>Interface suggestion</h2>
+<p>I recommend to have the following public functions in your package, which users can then call if they need to manage optional package data:</p>
+<ul>
+<li><code>download_optional_data()</code>: This function should download the optional data if needed (i.e., only if they do not exist already).</li>
+<li><code>list_optional_data()</code>: This function should return a vector of local files in the package cache that are currently available.</li>
+<li><code>get_optional_data_file(filename, mustWork=TRUE)</code>: This function should return the full path to a file in the package cache, based on the filename.</li>
+<li><code>delete_all_optional_data()</code>: This function should delete the optional data from the package cache to free up disk space.</li>
+</ul>
+</div>
+<div id="example-implementation-of-the-interface-for-your-package" class="section level2">
+<h2>Example implementation of the interface for your package</h2>
+<p>Here are example implementations for the functions above. You can copy and paste them, all you need to do afterwards is:</p>
+<ul>
+<li>in all functions: replace <code>yourpackage</code> with the name of your package.</li>
+<li>in the <code>download_optional_data</code> function: also replace the <code>local_files</code>, <code>urls</code> and <code>md5sums</code> with your optional data information.</li>
+</ul>
+<p>Here are the functions:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" data-line-number="1"><span class="co">#' @title Download optional data for this package if required.</span></a>
+<a class="sourceLine" id="cb6-2" data-line-number="2"><span class="co">#'</span></a>
+<a class="sourceLine" id="cb6-3" data-line-number="3"><span class="co">#' @description Ensure that the optioanl data is available locally in the package cache. Will try to download the data only if it is not available.</span></a>
+<a class="sourceLine" id="cb6-4" data-line-number="4"><span class="co">#' </span></a>
+<a class="sourceLine" id="cb6-5" data-line-number="5"><span class="co">#' @return Named list. The list has entries: &quot;available&quot;: vector of strings. The names of the files that are available in the local file cache. You can access them using get_optional_data_file(). &quot;missing&quot;: vector of strings. The names of the files that this function was unable to retrieve.</span></a>
+<a class="sourceLine" id="cb6-6" data-line-number="6"><span class="co">#'</span></a>
+<a class="sourceLine" id="cb6-7" data-line-number="7"><span class="co">#' @export</span></a>
+<a class="sourceLine" id="cb6-8" data-line-number="8">download_optional_data &lt;-<span class="st"> </span><span class="cf">function</span>() {</a>
+<a class="sourceLine" id="cb6-9" data-line-number="9">  pkg_info =<span class="st"> </span>pkgfilecache<span class="op">::</span><span class="kw">get_pkg_info</span>(<span class="st">&quot;yourpackage&quot;</span>);        <span class="co"># to identify the package using the cache</span></a>
+<a class="sourceLine" id="cb6-10" data-line-number="10">  </a>
+<a class="sourceLine" id="cb6-11" data-line-number="11">  <span class="co"># Replace these with your optional data files.</span></a>
+<a class="sourceLine" id="cb6-12" data-line-number="12">  local_filenames =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;file1.txt&quot;</span>, <span class="st">&quot;file2.txt&quot;</span>);    <span class="co"># How the files should be called in the local package file cache</span></a>
+<a class="sourceLine" id="cb6-13" data-line-number="13">  urls =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;https://your.server/yourpackage/large_file1.txt&quot;</span>, <span class="st">&quot;https://your.server/yourpackage/large_file2.txt&quot;</span>); <span class="co"># Remote URLs where to download files from</span></a>
+<a class="sourceLine" id="cb6-14" data-line-number="14">  md5sums =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;35261471bcd198583c3805ee2a543b1f&quot;</span>, <span class="st">&quot;85ffec2e6efb476f1ee1e3e7fddd86de&quot;</span>);    <span class="co"># MD5 checksums. Optional but recommended.</span></a>
+<a class="sourceLine" id="cb6-15" data-line-number="15">  </a>
+<a class="sourceLine" id="cb6-16" data-line-number="16">  cfiles =<span class="st"> </span>pkgfilecache<span class="op">::</span><span class="kw">ensure_files_available</span>(pkg_info, local_filenames, urls, <span class="dt">md5sums=</span>md5sums);</a>
+<a class="sourceLine" id="cb6-17" data-line-number="17">  cfiles<span class="op">$</span>file_status =<span class="st"> </span><span class="ot">NULL</span>;</a>
+<a class="sourceLine" id="cb6-18" data-line-number="18">  <span class="kw">return</span>(cfiles);</a>
+<a class="sourceLine" id="cb6-19" data-line-number="19">}</a>
+<a class="sourceLine" id="cb6-20" data-line-number="20"></a>
+<a class="sourceLine" id="cb6-21" data-line-number="21"><span class="co">#' @title Get file names available in package cache.</span></a>
+<a class="sourceLine" id="cb6-22" data-line-number="22"><span class="co">#'</span></a>
+<a class="sourceLine" id="cb6-23" data-line-number="23"><span class="co">#' @description Get file names of optional data files which are available in the local package cache. You can access these files with get_optional_data_file().</span></a>
+<a class="sourceLine" id="cb6-24" data-line-number="24"><span class="co">#' </span></a>
+<a class="sourceLine" id="cb6-25" data-line-number="25"><span class="co">#' @return vector of strings. The file names available, relative to the package cache.</span></a>
+<a class="sourceLine" id="cb6-26" data-line-number="26"><span class="co">#'</span></a>
+<a class="sourceLine" id="cb6-27" data-line-number="27"><span class="co">#' @export</span></a>
+<a class="sourceLine" id="cb6-28" data-line-number="28">list_optional_data &lt;-<span class="st"> </span><span class="cf">function</span>() {</a>
+<a class="sourceLine" id="cb6-29" data-line-number="29">  pkg_info =<span class="st"> </span>pkgfilecache<span class="op">::</span><span class="kw">get_pkg_info</span>(<span class="st">&quot;yourpackage&quot;</span>);</a>
+<a class="sourceLine" id="cb6-30" data-line-number="30">  <span class="kw">return</span>(pkgfilecache<span class="op">::</span><span class="kw">list_available</span>(pkg_info));</a>
+<a class="sourceLine" id="cb6-31" data-line-number="31">}</a>
+<a class="sourceLine" id="cb6-32" data-line-number="32"></a>
+<a class="sourceLine" id="cb6-33" data-line-number="33"></a>
+<a class="sourceLine" id="cb6-34" data-line-number="34"><span class="co">#' @title Access a single file from the package cache by its file name.</span></a>
+<a class="sourceLine" id="cb6-35" data-line-number="35"><span class="co">#'</span></a>
+<a class="sourceLine" id="cb6-36" data-line-number="36"><span class="co">#' @param filename, string. The filename of the file in the package cache.</span></a>
+<a class="sourceLine" id="cb6-37" data-line-number="37"><span class="co">#'</span></a>
+<a class="sourceLine" id="cb6-38" data-line-number="38"><span class="co">#' @param mustWork, logical. Whether an error should be created if the file does not exist. If mustWork=FALSE and the file does not exist, the empty string is returned.</span></a>
+<a class="sourceLine" id="cb6-39" data-line-number="39"><span class="co">#'</span></a>
+<a class="sourceLine" id="cb6-40" data-line-number="40"><span class="co">#' @return string. The full path to the file in the package cache. Use this in your application code to open the file.</span></a>
+<a class="sourceLine" id="cb6-41" data-line-number="41"><span class="co">#'</span></a>
+<a class="sourceLine" id="cb6-42" data-line-number="42"><span class="co">#' @export</span></a>
+<a class="sourceLine" id="cb6-43" data-line-number="43">get_optional_data_filepath &lt;-<span class="st"> </span><span class="cf">function</span>(filename, <span class="dt">mustWork=</span><span class="ot">TRUE</span>) {</a>
+<a class="sourceLine" id="cb6-44" data-line-number="44">  pkg_info =<span class="st"> </span>pkgfilecache<span class="op">::</span><span class="kw">get_pkg_info</span>(<span class="st">&quot;yourpackage&quot;</span>);</a>
+<a class="sourceLine" id="cb6-45" data-line-number="45">  <span class="kw">return</span>(pkgfilecache<span class="op">::</span><span class="kw">get_filepath</span>(pkg_info, filename, <span class="dt">mustWork=</span>mustWork));</a>
+<a class="sourceLine" id="cb6-46" data-line-number="46">}</a>
+<a class="sourceLine" id="cb6-47" data-line-number="47"></a>
+<a class="sourceLine" id="cb6-48" data-line-number="48"></a>
+<a class="sourceLine" id="cb6-49" data-line-number="49"><span class="co">#' @title Delete all data in the package cache.</span></a>
+<a class="sourceLine" id="cb6-50" data-line-number="50"><span class="co">#'</span></a>
+<a class="sourceLine" id="cb6-51" data-line-number="51"><span class="co">#' @return integer. The return value of the unlink() call: 0 for success, 1 for failure. See the unlink() documentation for details.</span></a>
+<a class="sourceLine" id="cb6-52" data-line-number="52"><span class="co">#'</span></a>
+<a class="sourceLine" id="cb6-53" data-line-number="53"><span class="co">#' @export</span></a>
+<a class="sourceLine" id="cb6-54" data-line-number="54">delete_all_optional_data &lt;-<span class="st"> </span><span class="cf">function</span>() {</a>
+<a class="sourceLine" id="cb6-55" data-line-number="55">  pkg_info =<span class="st"> </span>pkgfilecache<span class="op">::</span><span class="kw">get_pkg_info</span>(<span class="st">&quot;yourpackage&quot;</span>);</a>
+<a class="sourceLine" id="cb6-56" data-line-number="56">  <span class="kw">return</span>(pkgfilecache<span class="op">::</span><span class="kw">erase_cache</span>(pkg_info));</a>
+<a class="sourceLine" id="cb6-57" data-line-number="57">}</a></code></pre></div>
+</div>
+<div id="limitations-and-suggestions" class="section level2">
+<h2>Limitations and Suggestions</h2>
+<ul>
+<li>Let the users of your package decide whether or not they want the optional data, by supplying an API as suggested above.</li>
+<li>This needs the internet to work (at least once) for downloading. You should check the return values of the functions and be prepared for the case that the downloads failed.</li>
+<li>Currently, writing files to a local directory structure (sub directories) under the package cache dir is not supported. All files go directly into that dir.</li>
+<li>Nothing is special about the local package cache dir, and of course there is no way to enforce that other packages or applications do not mess with it and the data in it. You should never store secrets of any kind in that directory!</li>
+<li>It is your responsibility not to write absurd amounts of data into that directory and tell the user in advance how much data you are roughly about to download.</li>
+</ul>
+</div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
