@@ -78,6 +78,6 @@
 #  #' @export
 #  delete_all_optional_data <- function() {
 #    pkg_info = pkgfilecache::get_pkg_info("yourpackage");
-#    return(pkgfilecache::erase_cache(pkg_info));
+#    return(pkgfilecache::erase_file_cache(pkg_info));
 #  }
 

@@ -335,7 +335,7 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1">    <span class="kw">library</span>(<span class="st">&quot;pkgfilecache&quot;</span>)</a>
 <a class="sourceLine" id="cb1-2" data-line-number="2"></a>
 <a class="sourceLine" id="cb1-3" data-line-number="3">    pkg_info =<span class="st"> </span><span class="kw">get_pkg_info</span>(<span class="st">&quot;yourpackage&quot;</span>);   <span class="co"># Something to identify the package that uses the package file cache.</span></a>
-<a class="sourceLine" id="cb1-4" data-line-number="4">    </a>
+<a class="sourceLine" id="cb1-4" data-line-number="4"></a>
 <a class="sourceLine" id="cb1-5" data-line-number="5">    local_filenames =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;file1.txt&quot;</span>, <span class="st">&quot;file2.txt&quot;</span>);    <span class="co"># How the files should be called in the local package file cache</span></a>
 <a class="sourceLine" id="cb1-6" data-line-number="6">    urls =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;https://your.server/yourpackage/large_file1.txt&quot;</span>, <span class="st">&quot;https://your.server/yourpackage/large_file2.txt&quot;</span>); <span class="co"># Remote URLs where to download files from</span></a>
 <a class="sourceLine" id="cb1-7" data-line-number="7">    md5sums =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;35261471bcd198583c3805ee2a543b1f&quot;</span>, <span class="st">&quot;85ffec2e6efb476f1ee1e3e7fddd86de&quot;</span>);    <span class="co"># MD5 checksums. Optional but recommended.</span></a></code></pre></div>
@@ -389,18 +389,18 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" data-line-number="1"><span class="co">#' @title Download optional data for this package if required.</span></a>
 <a class="sourceLine" id="cb6-2" data-line-number="2"><span class="co">#'</span></a>
 <a class="sourceLine" id="cb6-3" data-line-number="3"><span class="co">#' @description Ensure that the optioanl data is available locally in the package cache. Will try to download the data only if it is not available.</span></a>
-<a class="sourceLine" id="cb6-4" data-line-number="4"><span class="co">#' </span></a>
+<a class="sourceLine" id="cb6-4" data-line-number="4"><span class="co">#'</span></a>
 <a class="sourceLine" id="cb6-5" data-line-number="5"><span class="co">#' @return Named list. The list has entries: &quot;available&quot;: vector of strings. The names of the files that are available in the local file cache. You can access them using get_optional_data_file(). &quot;missing&quot;: vector of strings. The names of the files that this function was unable to retrieve.</span></a>
 <a class="sourceLine" id="cb6-6" data-line-number="6"><span class="co">#'</span></a>
 <a class="sourceLine" id="cb6-7" data-line-number="7"><span class="co">#' @export</span></a>
 <a class="sourceLine" id="cb6-8" data-line-number="8">download_optional_data &lt;-<span class="st"> </span><span class="cf">function</span>() {</a>
 <a class="sourceLine" id="cb6-9" data-line-number="9">  pkg_info =<span class="st"> </span>pkgfilecache<span class="op">::</span><span class="kw">get_pkg_info</span>(<span class="st">&quot;yourpackage&quot;</span>);        <span class="co"># to identify the package using the cache</span></a>
-<a class="sourceLine" id="cb6-10" data-line-number="10">  </a>
+<a class="sourceLine" id="cb6-10" data-line-number="10"></a>
 <a class="sourceLine" id="cb6-11" data-line-number="11">  <span class="co"># Replace these with your optional data files.</span></a>
 <a class="sourceLine" id="cb6-12" data-line-number="12">  local_filenames =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;file1.txt&quot;</span>, <span class="st">&quot;file2.txt&quot;</span>);    <span class="co"># How the files should be called in the local package file cache</span></a>
 <a class="sourceLine" id="cb6-13" data-line-number="13">  urls =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;https://your.server/yourpackage/large_file1.txt&quot;</span>, <span class="st">&quot;https://your.server/yourpackage/large_file2.txt&quot;</span>); <span class="co"># Remote URLs where to download files from</span></a>
 <a class="sourceLine" id="cb6-14" data-line-number="14">  md5sums =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;35261471bcd198583c3805ee2a543b1f&quot;</span>, <span class="st">&quot;85ffec2e6efb476f1ee1e3e7fddd86de&quot;</span>);    <span class="co"># MD5 checksums. Optional but recommended.</span></a>
-<a class="sourceLine" id="cb6-15" data-line-number="15">  </a>
+<a class="sourceLine" id="cb6-15" data-line-number="15"></a>
 <a class="sourceLine" id="cb6-16" data-line-number="16">  cfiles =<span class="st"> </span>pkgfilecache<span class="op">::</span><span class="kw">ensure_files_available</span>(pkg_info, local_filenames, urls, <span class="dt">md5sums=</span>md5sums);</a>
 <a class="sourceLine" id="cb6-17" data-line-number="17">  cfiles<span class="op">$</span>file_status =<span class="st"> </span><span class="ot">NULL</span>;</a>
 <a class="sourceLine" id="cb6-18" data-line-number="18">  <span class="kw">return</span>(cfiles);</a>
@@ -409,7 +409,7 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <a class="sourceLine" id="cb6-21" data-line-number="21"><span class="co">#' @title Get file names available in package cache.</span></a>
 <a class="sourceLine" id="cb6-22" data-line-number="22"><span class="co">#'</span></a>
 <a class="sourceLine" id="cb6-23" data-line-number="23"><span class="co">#' @description Get file names of optional data files which are available in the local package cache. You can access these files with get_optional_data_file().</span></a>
-<a class="sourceLine" id="cb6-24" data-line-number="24"><span class="co">#' </span></a>
+<a class="sourceLine" id="cb6-24" data-line-number="24"><span class="co">#'</span></a>
 <a class="sourceLine" id="cb6-25" data-line-number="25"><span class="co">#' @return vector of strings. The file names available, relative to the package cache.</span></a>
 <a class="sourceLine" id="cb6-26" data-line-number="26"><span class="co">#'</span></a>
 <a class="sourceLine" id="cb6-27" data-line-number="27"><span class="co">#' @export</span></a>
@@ -441,7 +441,7 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <a class="sourceLine" id="cb6-53" data-line-number="53"><span class="co">#' @export</span></a>
 <a class="sourceLine" id="cb6-54" data-line-number="54">delete_all_optional_data &lt;-<span class="st"> </span><span class="cf">function</span>() {</a>
 <a class="sourceLine" id="cb6-55" data-line-number="55">  pkg_info =<span class="st"> </span>pkgfilecache<span class="op">::</span><span class="kw">get_pkg_info</span>(<span class="st">&quot;yourpackage&quot;</span>);</a>
-<a class="sourceLine" id="cb6-56" data-line-number="56">  <span class="kw">return</span>(pkgfilecache<span class="op">::</span><span class="kw">erase_cache</span>(pkg_info));</a>
+<a class="sourceLine" id="cb6-56" data-line-number="56">  <span class="kw">return</span>(pkgfilecache<span class="op">::</span><span class="kw">erase_file_cache</span>(pkg_info));</a>
 <a class="sourceLine" id="cb6-57" data-line-number="57">}</a></code></pre></div>
 </div>
 <div id="limitations-and-suggestions" class="section level2">
@@ -449,7 +449,6 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <ul>
 <li>Let the users of your package decide whether or not they want the optional data, by supplying an API as suggested above.</li>
 <li>This needs the internet to work (at least once) for downloading. You should check the return values of the functions and be prepared for the case that the downloads failed.</li>
-<li>Currently, writing files to a local directory structure (sub directories) under the package cache dir is not supported. All files go directly into that dir.</li>
 <li>Nothing is special about the local package cache dir, and of course there is no way to enforce that other packages or applications do not mess with it and the data in it. You should never store secrets of any kind in that directory!</li>
 <li>It is your responsibility not to write absurd amounts of data into that directory and tell the user in advance how much data you are roughly about to download.</li>
 </ul>

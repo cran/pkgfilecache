@@ -86,7 +86,7 @@ erase_file_cache <- function(pkg_info) {
 #'
 #' @param pkg_info, named list. Package identifier, see get_pkg_info() on how to get one.
 #'
-#' @return vector of strings. The file names available, relative to the package cache.
+#' @return vector of strings. The file names available, relative to the package cache. The returned names may include a subdirectory part. The subdirectories are not listed separately.
 #'
 #' @examples
 #'     pkg_info = get_pkg_info("mypackage")
@@ -95,7 +95,7 @@ erase_file_cache <- function(pkg_info) {
 #' @export
 list_available <- function(pkg_info) {
   datadir = get_cache_dir(pkg_info);
-  return(list.files(path = datadir, pattern = NULL, all.files = FALSE, full.names = FALSE, recursive = FALSE, ignore.case = FALSE, include.dirs = FALSE));
+  return(list.files(path = datadir, pattern = NULL, all.files = FALSE, full.names = FALSE, recursive = TRUE, ignore.case = FALSE, include.dirs = FALSE));
 }
 
 
@@ -203,6 +203,8 @@ ensure_files_available <- function(pkg_info, relative_filenames, urls, files_are
   }
 
   datadir = get_cache_dir(pkg_info);
+  
+  make_pgk_cache_subdir_for_all_relative_files(pkg_info, relative_filenames);
 
   local_files_absolute = get_abs_filenames(datadir, relative_filenames);
   local_files_md5_ok = files_exist_md5(local_files_absolute, md5sums);
@@ -286,17 +288,86 @@ get_filepath <- function(pkg_info, relative_filename, mustWork=TRUE) {
 #'
 #' @param datadir string, the path to the package cache directory.
 #'
-#' @param relative_filenames, vector of strings. A vector of filenames, relative to the package cache.
+#' @param relative_filenames, vector of strings. A vector of filenames, relative to the package cache. Can be a list of vectors, which will be interpreted as files with subdirs.
+#' 
+#' @return vector of strings, the absolute file names.
 #'
 #' @keywords internal
 get_abs_filenames <- function(datadir, relative_filenames) {
   num_files = length(relative_filenames);
   files_absolute = rep("", num_files);
   for (file_idx in 1:num_files) {
-    files_absolute[file_idx] = file.path(datadir, relative_filenames[file_idx]);
+    relative_file = relative_filenames[file_idx];
+    if(is.list(relative_filenames)) {  # The names include a sub directory
+      relative_file_path = do.call('file.path', as.list(unlist(relative_file)));
+      files_absolute[file_idx] = file.path(datadir, relative_file_path);
+    } else {
+      files_absolute[file_idx] = file.path(datadir, relative_file);
+    }
   }
   return(files_absolute);
 }
+
+
+#' @title Given a relative file, create the subdir in the package cache if needed.
+#' 
+#' @param pkg_info, named list. Package identifier, see get_pkg_info() on how to get one.
+#'
+#' @param relative_file, string or vector of strings. If a string, this function does nothing. If a vector of strings, a path is created from the elements using file.path, and the directory of it (determined by dirname()) is created.
+#'
+#' @keywords internal
+make_pgk_cache_subdir_for_relative_file <- function(pkg_info, relative_file) {
+  sd = get_relative_file_subdir(pkg_info, relative_file);
+  if(sd$has_subdir) {
+    if(!dir.exists(sd$absolute_subdir)) {
+      dir.create(sd$absolute_subdir, recursive = TRUE);
+    }
+  }
+}
+
+#' @title Given a relative file, create the subdir in the package cache if needed.
+#' 
+#' @param pkg_info, named list. Package identifier, see get_pkg_info() on how to get one.
+#'
+#' @param relative_filenames, vector of strings. A vector of filenames, relative to the package cache. Can be a list of vectors, which will be interpreted as files with subdirs.
+#'
+#' @keywords internal
+make_pgk_cache_subdir_for_all_relative_files <- function(pkg_info, relative_files) {
+  if(is.list(relative_files)) {
+    for(rfile in relative_files) {
+      make_pgk_cache_subdir_for_relative_file(pkg_info, rfile);
+    }
+  }
+}
+
+
+#' @title Given a relative file, determine its subdir in the package cache.
+#' 
+#' @param pkg_info, named list. Package identifier, see get_pkg_info() on how to get one.
+#'
+#' @param relative_file, string or vector of strings. If a string, this function does nothing. If a vector of strings, a path is created from the elements using file.path, and the directory of it (determined by dirname()) is created.
+#' 
+#' @return named list. The entries are: "has_subdir": logical, whether the file has a subdir. "relative_filepath": string. The input relative_file, flattened to a string. For files without subdir, this is identical to string in the parameter 'relative_file'. For others, it is the result of applying file.path() to the elements of the vector 'relative_file'. If "has_subdir" is TRUE, the following 2 fields also exist: "relative_subdir": string, subdir path relative to package cache dir. "absolute_subdir": string, absolute subdir path.
+#'
+#' @keywords internal
+get_relative_file_subdir <- function(pkg_info, relative_file) {
+  ret_list = list();
+  datadir = get_cache_dir(pkg_info);
+  if(length(relative_file) > 1) {    # This is a vector of strings
+    relative_filepath = do.call('file.path', as.list(relative_file));
+    relative_subdir = dirname(relative_filepath);
+    absolute_subdir = file.path(datadir, relative_subdir)
+    ret_list$has_subdir = TRUE;
+    ret_list$relative_subdir = relative_subdir;
+    ret_list$absolute_subdir = absolute_subdir;
+    ret_list$relative_filepath = relative_filepath; 
+  } else {          # This is a single string. (Note that is.vector() is TRUE for strings in R, that's why this test is so ugly.)
+    ret_list$has_subdir = FALSE;
+    ret_list$relative_filepath = relative_file;
+  }
+  return(ret_list);
+}
+
 
 
 #' @title Check whether files exist, optionally with MD5 check.
@@ -363,11 +434,15 @@ download_files_with_md5_mismatch <- function(local_files_absolute, local_files_m
         if(!(files_are_binary[file_idx])) {
           mode = "w";
         }
+        url=urls[file_idx];
+        destfile = local_files_absolute[file_idx];
+        cat(sprintf("Download file to '%s' from '%s'\n", destfile, url));
         # Ignore all errors, which may be thrown depending on the download method and platform. We check later whether the files are available with correct MD5, which is much better anyways.
         ignored = tryCatch({
-          downloader::download(url=urls[file_idx], destfile=local_files_absolute[file_idx], quite=TRUE, mode=mode);
-        }, error=function(e){}, warning=function(w){});
-
+          downloader::download(url=url, destfile=destfile, quite=TRUE, mode=mode);
+        }, 
+        error=function(e){ if(file.exists(destfile)) {file.remove(destfile);}},      # If warnings happen, something went wrong and an empty file may exist at destfile. Remove it.
+        warning=function(w){ if(file.exists(destfile)) {file.remove(destfile);}});
     }
   }
 }
