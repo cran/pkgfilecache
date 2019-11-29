@@ -1,11 +1,11 @@
-69e34a6c1f8afdfd02729ff9fc00eb7d *DESCRIPTION
+6728a5d9ba15ecaab215f1482ca2d03f *DESCRIPTION
 e031a1063808baaabca84863c4685b3d *LICENSE
 719f68c407f21b054b4f2e99395e85f6 *NAMESPACE
-b837ea67b1d1e39f5afe09efeaa24ce3 *R/filecache.R
+2716d0d72e38d5e590b18514087af5f2 *R/filecache.R
 8e93a3a8a698e5d9865b1b4e398574f3 *build/vignette.rds
-b9001ff9a06006c8fbee4996ad6e5c69 *inst/doc/pkgfilecache.R
-696efe14fb4e6f11e07262af179ddbe2 *inst/doc/pkgfilecache.Rmd
-aa701ba21283e0d3504dd774a80d0438 *inst/doc/pkgfilecache.html
+76706e9b3bfc8983930c0544b8cf1783 *inst/doc/pkgfilecache.R
+408252530f6023889b61167299107d41 *inst/doc/pkgfilecache.Rmd
+a5bd52ebe4d58ecd60998317165cb655 *inst/doc/pkgfilecache.html
 35261471bcd198583c3805ee2a543b1f *inst/extdata/file1.txt
 85ffec2e6efb476f1ee1e3e7fddd86de *inst/extdata/file2.txt
 5eeb8515755e8b7dec44427351dbbe5d *man/are_files_available.Rd
@@ -13,6 +13,7 @@ aa701ba21283e0d3504dd774a80d0438 *inst/doc/pkgfilecache.html
 fad937b09cbfb6d9e2dcd7fdbfd11ca0 *man/ensure_files_available.Rd
 2ddab56eee76398f491009aff03a2a70 *man/erase_file_cache.Rd
 2aa16ec52d65409afedd03e454bbb43f *man/files_exist_md5.Rd
+89466c32fcc6dd461c80d533005354f2 *man/flatten_filepath.Rd
 268b1eb7cf32930c7b51cdae798a5f71 *man/get_abs_filenames.Rd
 87ff865c0bac490f3a27f076ed0081d2 *man/get_absolute_path_for_files.Rd
 51f0e4526b17a8b84eebe59e94f66cc9 *man/get_cache_dir.Rd
@@ -24,5 +25,5 @@ a89734a7fff1d2f78d462dec4880515c *man/list_available.Rd
 cb5dad86b5ed0d1b3e6e5ec63b4df1d0 *man/make_pgk_cache_subdir_for_relative_file.Rd
 6342ddbd740559476ad16135807c6723 *man/remove_cached_files.Rd
 4c55f450b7f1880b599adbf1b38412f6 *tests/testthat.R
-c17ecb801fcbfddefe37b1b87aacc9af *tests/testthat/test-filecache.R
-696efe14fb4e6f11e07262af179ddbe2 *vignettes/pkgfilecache.Rmd
+e0319bb3daa6e95d718fe4d013ac6dfc *tests/testthat/test-filecache.R
+408252530f6023889b61167299107d41 *vignettes/pkgfilecache.Rmd

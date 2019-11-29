@@ -332,36 +332,43 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <div id="making-files-from-a-remote-server-available-locally-on-the-user-computer" class="section level2">
 <h2>Making files from a remote server available locally (on the user computer)</h2>
 <p>Let’s first make files hosted on our server available on the client, in the package cache. First, define the files you want:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1">    <span class="kw">library</span>(<span class="st">&quot;pkgfilecache&quot;</span>)</a>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw">library</span>(<span class="st">&quot;pkgfilecache&quot;</span>)</a>
 <a class="sourceLine" id="cb1-2" data-line-number="2"></a>
-<a class="sourceLine" id="cb1-3" data-line-number="3">    pkg_info =<span class="st"> </span><span class="kw">get_pkg_info</span>(<span class="st">&quot;yourpackage&quot;</span>);   <span class="co"># Something to identify the package that uses the package file cache.</span></a>
+<a class="sourceLine" id="cb1-3" data-line-number="3">pkg_info =<span class="st"> </span><span class="kw">get_pkg_info</span>(<span class="st">&quot;yourpackage&quot;</span>);   <span class="co"># Something to identify the package that uses the package file cache.</span></a>
 <a class="sourceLine" id="cb1-4" data-line-number="4"></a>
-<a class="sourceLine" id="cb1-5" data-line-number="5">    local_filenames =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;file1.txt&quot;</span>, <span class="st">&quot;file2.txt&quot;</span>);    <span class="co"># How the files should be called in the local package file cache</span></a>
-<a class="sourceLine" id="cb1-6" data-line-number="6">    urls =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;https://your.server/yourpackage/large_file1.txt&quot;</span>, <span class="st">&quot;https://your.server/yourpackage/large_file2.txt&quot;</span>); <span class="co"># Remote URLs where to download files from</span></a>
-<a class="sourceLine" id="cb1-7" data-line-number="7">    md5sums =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;35261471bcd198583c3805ee2a543b1f&quot;</span>, <span class="st">&quot;85ffec2e6efb476f1ee1e3e7fddd86de&quot;</span>);    <span class="co"># MD5 checksums. Optional but recommended.</span></a></code></pre></div>
+<a class="sourceLine" id="cb1-5" data-line-number="5">local_filenames =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;file1.txt&quot;</span>, <span class="st">&quot;file2.txt&quot;</span>);    <span class="co"># How the files should be called in the local package file cache</span></a>
+<a class="sourceLine" id="cb1-6" data-line-number="6">urls =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;https://your.server/yourpackage/large_file1.txt&quot;</span>, <span class="st">&quot;https://your.server/yourpackage/large_file2.txt&quot;</span>); <span class="co"># Remote URLs where to download files from</span></a>
+<a class="sourceLine" id="cb1-7" data-line-number="7">md5sums =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;35261471bcd198583c3805ee2a543b1f&quot;</span>, <span class="st">&quot;85ffec2e6efb476f1ee1e3e7fddd86de&quot;</span>);    <span class="co"># MD5 checksums. Optional but recommended.</span></a></code></pre></div>
 <p>Now it is time to make them available:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1">    res =<span class="st"> </span><span class="kw">ensure_files_available</span>(pkg_info, local_filenames, urls, <span class="dt">md5sums=</span>md5sums);</a></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1">res =<span class="st"> </span><span class="kw">ensure_files_available</span>(pkg_info, local_filenames, urls, <span class="dt">md5sums=</span>md5sums);</a></code></pre></div>
 <p>The return value <code>res</code> is a named list with several entries. The field <code>res$file_status</code> is a logical vector indicating for each file whether it now exists locally. Note that the function will first check to see whether the files are already in the package cache. If you supplied md5sums, they will also be checked. Only files which did not pass the check will be downloaded, so it is save to call this function every time you want to make sure that the files exist. (E.g., in example code you give).</p>
-<p>You can also get a list of the filename which are now available (no matter whether they have been downloaded or where already available) from <code>res$available</code>. And you can get a list of file which should have been downloaded, but for which retrieval failed, from <code>res$missing</code>.</p>
-<p>Typically you would wrap the code above into a function within your package and call it something like <code>download_optional_data()</code>, see below.</p>
+<p>You can also get a list of the filename which are now available (no matter whether they have been downloaded or were already available) from <code>res$available</code>. And you can get a list of file which should have been downloaded, but for which retrieval failed, from <code>res$missing</code>.</p>
+<div id="storing-files-in-local-subdirectories-of-the-package-cache" class="section level3">
+<h3>Storing files in local subdirectories of the package cache</h3>
+<p>The example above stores all files in the base directory of the package cache. To store a file in a local subdirectory, pass a list of vectors instead. Each entry in the list will be interpreted as the relative path to the local file:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" data-line-number="1">local_relative_filenames =<span class="st"> </span><span class="kw">list</span>(<span class="kw">c</span>(<span class="st">&quot;dir1&quot;</span>, <span class="st">&quot;file1.txt&quot;</span>), <span class="kw">c</span>(<span class="st">&quot;dir2&quot;</span>, <span class="st">&quot;file2.txt&quot;</span>));</a></code></pre></div>
+<p>That example will download the files to <code>dir1/file1.txt</code>and <code>dir2/file2.txt</code>. The directories will be created automatically if they do not exist.</p>
+</div>
 </div>
 <div id="accessing-a-file-from-the-local-package-cache" class="section level2">
 <h2>Accessing a file from the local package cache</h2>
 <p>Let’s now get the full path for a file in the package cash, so that we can use it in our application:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" data-line-number="1">    wanted_local_file =<span class="st"> &quot;file1.txt&quot;</span>;</a>
-<a class="sourceLine" id="cb3-2" data-line-number="2">    file_path =<span class="st"> </span><span class="kw">get_filepath</span>(pkg_info, wanted_local_file, <span class="dt">mustWork=</span><span class="ot">TRUE</span>);</a></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" data-line-number="1">wanted_local_file =<span class="st"> &quot;file1.txt&quot;</span>;</a>
+<a class="sourceLine" id="cb4-2" data-line-number="2">file_path =<span class="st"> </span><span class="kw">get_filepath</span>(pkg_info, wanted_local_file, <span class="dt">mustWork=</span><span class="ot">TRUE</span>);</a></code></pre></div>
+<p>If the file is in a local sub directory, use a list with one element, a vector of path elements:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1">file_path =<span class="st"> </span><span class="kw">get_filepath</span>(pkg_info, <span class="kw">list</span>(<span class="kw">c</span>(<span class="st">&quot;test&quot;</span>, <span class="st">&quot;file1&quot;</span>)), <span class="dt">mustWork=</span><span class="ot">TRUE</span>);</a></code></pre></div>
 </div>
 <div id="removing-files-you-do-not-need-anymore-from-the-package-cache" class="section level2">
 <h2>Removing files you do not need anymore from the package cache</h2>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" data-line-number="1">local_filenames =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;file1.txt&quot;</span>, <span class="st">&quot;file2.txt&quot;</span>);</a>
-<a class="sourceLine" id="cb4-2" data-line-number="2">deleted =<span class="st"> </span><span class="kw">remove_cached_files</span>(pkg_info, local_filenames);</a></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" data-line-number="1">local_filenames =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;file1.txt&quot;</span>, <span class="st">&quot;file2.txt&quot;</span>);</a>
+<a class="sourceLine" id="cb6-2" data-line-number="2">deleted =<span class="st"> </span><span class="kw">remove_cached_files</span>(pkg_info, local_filenames);</a></code></pre></div>
 <p>The return value <code>deleted</code> is a logical vector indicating for each file whether it was deleted. IMPORTANT: Files that did not exist in the first place were not deleted. To check which files really exist, read on.</p>
 </div>
 <div id="manually-checking-whether-a-file-exists-in-the-package-cache" class="section level2">
 <h2>Manually checking whether a file exists in the package cache</h2>
 <p>Do one of the following, depending on whether you want MD5 sum checks:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1">files_exist =<span class="st"> </span><span class="kw">are_files_available</span>(pkg_info, local_filenames);  <span class="co"># no MD5 check</span></a>
-<a class="sourceLine" id="cb5-2" data-line-number="2">files_exist_and_have_correct_md5 =<span class="st"> </span><span class="kw">are_files_available</span>(pkg_info, local_filenames, <span class="dt">md5sums=</span>md5sums);  <span class="co"># with MD5 check</span></a></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" data-line-number="1">files_exist =<span class="st"> </span><span class="kw">are_files_available</span>(pkg_info, local_filenames);  <span class="co"># no MD5 check</span></a>
+<a class="sourceLine" id="cb7-2" data-line-number="2">files_exist_and_have_correct_md5 =<span class="st"> </span><span class="kw">are_files_available</span>(pkg_info, local_filenames, <span class="dt">md5sums=</span>md5sums);  <span class="co"># with MD5 check</span></a></code></pre></div>
 <p>The return values are logical vectors indicating for each file whether it exists (and, in the second example, whether the MD5 sum is as expected).</p>
 </div>
 </div>
@@ -386,63 +393,63 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <li>in the <code>download_optional_data</code> function: also replace the <code>local_files</code>, <code>urls</code> and <code>md5sums</code> with your optional data information.</li>
 </ul>
 <p>Here are the functions:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" data-line-number="1"><span class="co">#' @title Download optional data for this package if required.</span></a>
-<a class="sourceLine" id="cb6-2" data-line-number="2"><span class="co">#'</span></a>
-<a class="sourceLine" id="cb6-3" data-line-number="3"><span class="co">#' @description Ensure that the optioanl data is available locally in the package cache. Will try to download the data only if it is not available.</span></a>
-<a class="sourceLine" id="cb6-4" data-line-number="4"><span class="co">#'</span></a>
-<a class="sourceLine" id="cb6-5" data-line-number="5"><span class="co">#' @return Named list. The list has entries: &quot;available&quot;: vector of strings. The names of the files that are available in the local file cache. You can access them using get_optional_data_file(). &quot;missing&quot;: vector of strings. The names of the files that this function was unable to retrieve.</span></a>
-<a class="sourceLine" id="cb6-6" data-line-number="6"><span class="co">#'</span></a>
-<a class="sourceLine" id="cb6-7" data-line-number="7"><span class="co">#' @export</span></a>
-<a class="sourceLine" id="cb6-8" data-line-number="8">download_optional_data &lt;-<span class="st"> </span><span class="cf">function</span>() {</a>
-<a class="sourceLine" id="cb6-9" data-line-number="9">  pkg_info =<span class="st"> </span>pkgfilecache<span class="op">::</span><span class="kw">get_pkg_info</span>(<span class="st">&quot;yourpackage&quot;</span>);        <span class="co"># to identify the package using the cache</span></a>
-<a class="sourceLine" id="cb6-10" data-line-number="10"></a>
-<a class="sourceLine" id="cb6-11" data-line-number="11">  <span class="co"># Replace these with your optional data files.</span></a>
-<a class="sourceLine" id="cb6-12" data-line-number="12">  local_filenames =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;file1.txt&quot;</span>, <span class="st">&quot;file2.txt&quot;</span>);    <span class="co"># How the files should be called in the local package file cache</span></a>
-<a class="sourceLine" id="cb6-13" data-line-number="13">  urls =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;https://your.server/yourpackage/large_file1.txt&quot;</span>, <span class="st">&quot;https://your.server/yourpackage/large_file2.txt&quot;</span>); <span class="co"># Remote URLs where to download files from</span></a>
-<a class="sourceLine" id="cb6-14" data-line-number="14">  md5sums =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;35261471bcd198583c3805ee2a543b1f&quot;</span>, <span class="st">&quot;85ffec2e6efb476f1ee1e3e7fddd86de&quot;</span>);    <span class="co"># MD5 checksums. Optional but recommended.</span></a>
-<a class="sourceLine" id="cb6-15" data-line-number="15"></a>
-<a class="sourceLine" id="cb6-16" data-line-number="16">  cfiles =<span class="st"> </span>pkgfilecache<span class="op">::</span><span class="kw">ensure_files_available</span>(pkg_info, local_filenames, urls, <span class="dt">md5sums=</span>md5sums);</a>
-<a class="sourceLine" id="cb6-17" data-line-number="17">  cfiles<span class="op">$</span>file_status =<span class="st"> </span><span class="ot">NULL</span>;</a>
-<a class="sourceLine" id="cb6-18" data-line-number="18">  <span class="kw">return</span>(cfiles);</a>
-<a class="sourceLine" id="cb6-19" data-line-number="19">}</a>
-<a class="sourceLine" id="cb6-20" data-line-number="20"></a>
-<a class="sourceLine" id="cb6-21" data-line-number="21"><span class="co">#' @title Get file names available in package cache.</span></a>
-<a class="sourceLine" id="cb6-22" data-line-number="22"><span class="co">#'</span></a>
-<a class="sourceLine" id="cb6-23" data-line-number="23"><span class="co">#' @description Get file names of optional data files which are available in the local package cache. You can access these files with get_optional_data_file().</span></a>
-<a class="sourceLine" id="cb6-24" data-line-number="24"><span class="co">#'</span></a>
-<a class="sourceLine" id="cb6-25" data-line-number="25"><span class="co">#' @return vector of strings. The file names available, relative to the package cache.</span></a>
-<a class="sourceLine" id="cb6-26" data-line-number="26"><span class="co">#'</span></a>
-<a class="sourceLine" id="cb6-27" data-line-number="27"><span class="co">#' @export</span></a>
-<a class="sourceLine" id="cb6-28" data-line-number="28">list_optional_data &lt;-<span class="st"> </span><span class="cf">function</span>() {</a>
-<a class="sourceLine" id="cb6-29" data-line-number="29">  pkg_info =<span class="st"> </span>pkgfilecache<span class="op">::</span><span class="kw">get_pkg_info</span>(<span class="st">&quot;yourpackage&quot;</span>);</a>
-<a class="sourceLine" id="cb6-30" data-line-number="30">  <span class="kw">return</span>(pkgfilecache<span class="op">::</span><span class="kw">list_available</span>(pkg_info));</a>
-<a class="sourceLine" id="cb6-31" data-line-number="31">}</a>
-<a class="sourceLine" id="cb6-32" data-line-number="32"></a>
-<a class="sourceLine" id="cb6-33" data-line-number="33"></a>
-<a class="sourceLine" id="cb6-34" data-line-number="34"><span class="co">#' @title Access a single file from the package cache by its file name.</span></a>
-<a class="sourceLine" id="cb6-35" data-line-number="35"><span class="co">#'</span></a>
-<a class="sourceLine" id="cb6-36" data-line-number="36"><span class="co">#' @param filename, string. The filename of the file in the package cache.</span></a>
-<a class="sourceLine" id="cb6-37" data-line-number="37"><span class="co">#'</span></a>
-<a class="sourceLine" id="cb6-38" data-line-number="38"><span class="co">#' @param mustWork, logical. Whether an error should be created if the file does not exist. If mustWork=FALSE and the file does not exist, the empty string is returned.</span></a>
-<a class="sourceLine" id="cb6-39" data-line-number="39"><span class="co">#'</span></a>
-<a class="sourceLine" id="cb6-40" data-line-number="40"><span class="co">#' @return string. The full path to the file in the package cache. Use this in your application code to open the file.</span></a>
-<a class="sourceLine" id="cb6-41" data-line-number="41"><span class="co">#'</span></a>
-<a class="sourceLine" id="cb6-42" data-line-number="42"><span class="co">#' @export</span></a>
-<a class="sourceLine" id="cb6-43" data-line-number="43">get_optional_data_filepath &lt;-<span class="st"> </span><span class="cf">function</span>(filename, <span class="dt">mustWork=</span><span class="ot">TRUE</span>) {</a>
-<a class="sourceLine" id="cb6-44" data-line-number="44">  pkg_info =<span class="st"> </span>pkgfilecache<span class="op">::</span><span class="kw">get_pkg_info</span>(<span class="st">&quot;yourpackage&quot;</span>);</a>
-<a class="sourceLine" id="cb6-45" data-line-number="45">  <span class="kw">return</span>(pkgfilecache<span class="op">::</span><span class="kw">get_filepath</span>(pkg_info, filename, <span class="dt">mustWork=</span>mustWork));</a>
-<a class="sourceLine" id="cb6-46" data-line-number="46">}</a>
-<a class="sourceLine" id="cb6-47" data-line-number="47"></a>
-<a class="sourceLine" id="cb6-48" data-line-number="48"></a>
-<a class="sourceLine" id="cb6-49" data-line-number="49"><span class="co">#' @title Delete all data in the package cache.</span></a>
-<a class="sourceLine" id="cb6-50" data-line-number="50"><span class="co">#'</span></a>
-<a class="sourceLine" id="cb6-51" data-line-number="51"><span class="co">#' @return integer. The return value of the unlink() call: 0 for success, 1 for failure. See the unlink() documentation for details.</span></a>
-<a class="sourceLine" id="cb6-52" data-line-number="52"><span class="co">#'</span></a>
-<a class="sourceLine" id="cb6-53" data-line-number="53"><span class="co">#' @export</span></a>
-<a class="sourceLine" id="cb6-54" data-line-number="54">delete_all_optional_data &lt;-<span class="st"> </span><span class="cf">function</span>() {</a>
-<a class="sourceLine" id="cb6-55" data-line-number="55">  pkg_info =<span class="st"> </span>pkgfilecache<span class="op">::</span><span class="kw">get_pkg_info</span>(<span class="st">&quot;yourpackage&quot;</span>);</a>
-<a class="sourceLine" id="cb6-56" data-line-number="56">  <span class="kw">return</span>(pkgfilecache<span class="op">::</span><span class="kw">erase_file_cache</span>(pkg_info));</a>
-<a class="sourceLine" id="cb6-57" data-line-number="57">}</a></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" data-line-number="1"><span class="co">#' @title Download optional data for this package if required.</span></a>
+<a class="sourceLine" id="cb8-2" data-line-number="2"><span class="co">#'</span></a>
+<a class="sourceLine" id="cb8-3" data-line-number="3"><span class="co">#' @description Ensure that the optioanl data is available locally in the package cache. Will try to download the data only if it is not available.</span></a>
+<a class="sourceLine" id="cb8-4" data-line-number="4"><span class="co">#'</span></a>
+<a class="sourceLine" id="cb8-5" data-line-number="5"><span class="co">#' @return Named list. The list has entries: &quot;available&quot;: vector of strings. The names of the files that are available in the local file cache. You can access them using get_optional_data_file(). &quot;missing&quot;: vector of strings. The names of the files that this function was unable to retrieve.</span></a>
+<a class="sourceLine" id="cb8-6" data-line-number="6"><span class="co">#'</span></a>
+<a class="sourceLine" id="cb8-7" data-line-number="7"><span class="co">#' @export</span></a>
+<a class="sourceLine" id="cb8-8" data-line-number="8">download_optional_data &lt;-<span class="st"> </span><span class="cf">function</span>() {</a>
+<a class="sourceLine" id="cb8-9" data-line-number="9">  pkg_info =<span class="st"> </span>pkgfilecache<span class="op">::</span><span class="kw">get_pkg_info</span>(<span class="st">&quot;yourpackage&quot;</span>);        <span class="co"># to identify the package using the cache</span></a>
+<a class="sourceLine" id="cb8-10" data-line-number="10"></a>
+<a class="sourceLine" id="cb8-11" data-line-number="11">  <span class="co"># Replace these with your optional data files.</span></a>
+<a class="sourceLine" id="cb8-12" data-line-number="12">  local_filenames =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;file1.txt&quot;</span>, <span class="st">&quot;file2.txt&quot;</span>);    <span class="co"># How the files should be called in the local package file cache</span></a>
+<a class="sourceLine" id="cb8-13" data-line-number="13">  urls =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;https://your.server/yourpackage/large_file1.txt&quot;</span>, <span class="st">&quot;https://your.server/yourpackage/large_file2.txt&quot;</span>); <span class="co"># Remote URLs where to download files from</span></a>
+<a class="sourceLine" id="cb8-14" data-line-number="14">  md5sums =<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;35261471bcd198583c3805ee2a543b1f&quot;</span>, <span class="st">&quot;85ffec2e6efb476f1ee1e3e7fddd86de&quot;</span>);    <span class="co"># MD5 checksums. Optional but recommended.</span></a>
+<a class="sourceLine" id="cb8-15" data-line-number="15"></a>
+<a class="sourceLine" id="cb8-16" data-line-number="16">  cfiles =<span class="st"> </span>pkgfilecache<span class="op">::</span><span class="kw">ensure_files_available</span>(pkg_info, local_filenames, urls, <span class="dt">md5sums=</span>md5sums);</a>
+<a class="sourceLine" id="cb8-17" data-line-number="17">  cfiles<span class="op">$</span>file_status =<span class="st"> </span><span class="ot">NULL</span>;</a>
+<a class="sourceLine" id="cb8-18" data-line-number="18">  <span class="kw">return</span>(cfiles);</a>
+<a class="sourceLine" id="cb8-19" data-line-number="19">}</a>
+<a class="sourceLine" id="cb8-20" data-line-number="20"></a>
+<a class="sourceLine" id="cb8-21" data-line-number="21"><span class="co">#' @title Get file names available in package cache.</span></a>
+<a class="sourceLine" id="cb8-22" data-line-number="22"><span class="co">#'</span></a>
+<a class="sourceLine" id="cb8-23" data-line-number="23"><span class="co">#' @description Get file names of optional data files which are available in the local package cache. You can access these files with get_optional_data_file().</span></a>
+<a class="sourceLine" id="cb8-24" data-line-number="24"><span class="co">#'</span></a>
+<a class="sourceLine" id="cb8-25" data-line-number="25"><span class="co">#' @return vector of strings. The file names available, relative to the package cache.</span></a>
+<a class="sourceLine" id="cb8-26" data-line-number="26"><span class="co">#'</span></a>
+<a class="sourceLine" id="cb8-27" data-line-number="27"><span class="co">#' @export</span></a>
+<a class="sourceLine" id="cb8-28" data-line-number="28">list_optional_data &lt;-<span class="st"> </span><span class="cf">function</span>() {</a>
+<a class="sourceLine" id="cb8-29" data-line-number="29">  pkg_info =<span class="st"> </span>pkgfilecache<span class="op">::</span><span class="kw">get_pkg_info</span>(<span class="st">&quot;yourpackage&quot;</span>);</a>
+<a class="sourceLine" id="cb8-30" data-line-number="30">  <span class="kw">return</span>(pkgfilecache<span class="op">::</span><span class="kw">list_available</span>(pkg_info));</a>
+<a class="sourceLine" id="cb8-31" data-line-number="31">}</a>
+<a class="sourceLine" id="cb8-32" data-line-number="32"></a>
+<a class="sourceLine" id="cb8-33" data-line-number="33"></a>
+<a class="sourceLine" id="cb8-34" data-line-number="34"><span class="co">#' @title Access a single file from the package cache by its file name.</span></a>
+<a class="sourceLine" id="cb8-35" data-line-number="35"><span class="co">#'</span></a>
+<a class="sourceLine" id="cb8-36" data-line-number="36"><span class="co">#' @param filename, string. The filename of the file in the package cache.</span></a>
+<a class="sourceLine" id="cb8-37" data-line-number="37"><span class="co">#'</span></a>
+<a class="sourceLine" id="cb8-38" data-line-number="38"><span class="co">#' @param mustWork, logical. Whether an error should be created if the file does not exist. If mustWork=FALSE and the file does not exist, the empty string is returned.</span></a>
+<a class="sourceLine" id="cb8-39" data-line-number="39"><span class="co">#'</span></a>
+<a class="sourceLine" id="cb8-40" data-line-number="40"><span class="co">#' @return string. The full path to the file in the package cache. Use this in your application code to open the file.</span></a>
+<a class="sourceLine" id="cb8-41" data-line-number="41"><span class="co">#'</span></a>
+<a class="sourceLine" id="cb8-42" data-line-number="42"><span class="co">#' @export</span></a>
+<a class="sourceLine" id="cb8-43" data-line-number="43">get_optional_data_filepath &lt;-<span class="st"> </span><span class="cf">function</span>(filename, <span class="dt">mustWork=</span><span class="ot">TRUE</span>) {</a>
+<a class="sourceLine" id="cb8-44" data-line-number="44">  pkg_info =<span class="st"> </span>pkgfilecache<span class="op">::</span><span class="kw">get_pkg_info</span>(<span class="st">&quot;yourpackage&quot;</span>);</a>
+<a class="sourceLine" id="cb8-45" data-line-number="45">  <span class="kw">return</span>(pkgfilecache<span class="op">::</span><span class="kw">get_filepath</span>(pkg_info, filename, <span class="dt">mustWork=</span>mustWork));</a>
+<a class="sourceLine" id="cb8-46" data-line-number="46">}</a>
+<a class="sourceLine" id="cb8-47" data-line-number="47"></a>
+<a class="sourceLine" id="cb8-48" data-line-number="48"></a>
+<a class="sourceLine" id="cb8-49" data-line-number="49"><span class="co">#' @title Delete all data in the package cache.</span></a>
+<a class="sourceLine" id="cb8-50" data-line-number="50"><span class="co">#'</span></a>
+<a class="sourceLine" id="cb8-51" data-line-number="51"><span class="co">#' @return integer. The return value of the unlink() call: 0 for success, 1 for failure. See the unlink() documentation for details.</span></a>
+<a class="sourceLine" id="cb8-52" data-line-number="52"><span class="co">#'</span></a>
+<a class="sourceLine" id="cb8-53" data-line-number="53"><span class="co">#' @export</span></a>
+<a class="sourceLine" id="cb8-54" data-line-number="54">delete_all_optional_data &lt;-<span class="st"> </span><span class="cf">function</span>() {</a>
+<a class="sourceLine" id="cb8-55" data-line-number="55">  pkg_info =<span class="st"> </span>pkgfilecache<span class="op">::</span><span class="kw">get_pkg_info</span>(<span class="st">&quot;yourpackage&quot;</span>);</a>
+<a class="sourceLine" id="cb8-56" data-line-number="56">  <span class="kw">return</span>(pkgfilecache<span class="op">::</span><span class="kw">erase_file_cache</span>(pkg_info));</a>
+<a class="sourceLine" id="cb8-57" data-line-number="57">}</a></code></pre></div>
 </div>
 <div id="limitations-and-suggestions" class="section level2">
 <h2>Limitations and Suggestions</h2>
