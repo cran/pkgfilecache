@@ -1,4 +1,4 @@
-## ---- eval = FALSE-------------------------------------------------------
+## ---- eval = FALSE------------------------------------------------------------
 #  library("pkgfilecache")
 #  
 #  pkg_info = get_pkg_info("yourpackage");   # Something to identify the package that uses the package file cache.
@@ -7,28 +7,28 @@
 #  urls = c("https://your.server/yourpackage/large_file1.txt", "https://your.server/yourpackage/large_file2.txt"); # Remote URLs where to download files from
 #  md5sums = c("35261471bcd198583c3805ee2a543b1f", "85ffec2e6efb476f1ee1e3e7fddd86de");    # MD5 checksums. Optional but recommended.
 
-## ---- eval = FALSE-------------------------------------------------------
+## ---- eval = FALSE------------------------------------------------------------
 #  res = ensure_files_available(pkg_info, local_filenames, urls, md5sums=md5sums);
 
-## ---- eval = FALSE-------------------------------------------------------
+## ---- eval = FALSE------------------------------------------------------------
 #  local_relative_filenames = list(c("dir1", "file1.txt"), c("dir2", "file2.txt"));
 
-## ---- eval = FALSE-------------------------------------------------------
+## ---- eval = FALSE------------------------------------------------------------
 #  wanted_local_file = "file1.txt";
 #  file_path = get_filepath(pkg_info, wanted_local_file, mustWork=TRUE);
 
-## ---- eval = FALSE-------------------------------------------------------
+## ---- eval = FALSE------------------------------------------------------------
 #  file_path = get_filepath(pkg_info, list(c("test", "file1")), mustWork=TRUE);
 
-## ---- eval = FALSE-------------------------------------------------------
+## ---- eval = FALSE------------------------------------------------------------
 #  local_filenames = c("file1.txt", "file2.txt");
 #  deleted = remove_cached_files(pkg_info, local_filenames);
 
-## ---- eval = FALSE-------------------------------------------------------
+## ---- eval = FALSE------------------------------------------------------------
 #  files_exist = are_files_available(pkg_info, local_filenames);  # no MD5 check
 #  files_exist_and_have_correct_md5 = are_files_available(pkg_info, local_filenames, md5sums=md5sums);  # with MD5 check
 
-## ---- eval = FALSE-------------------------------------------------------
+## ---- eval = FALSE------------------------------------------------------------
 #  #' @title Download optional data for this package if required.
 #  #'
 #  #' @description Ensure that the optioanl data is available locally in the package cache. Will try to download the data only if it is not available.
