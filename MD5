@@ -1,11 +1,11 @@
-68f6297c3d512e21b1879ec3d73bd253 *DESCRIPTION
+fa5a813476ef238357e7d110a93b68a8 *DESCRIPTION
 e031a1063808baaabca84863c4685b3d *LICENSE
 719f68c407f21b054b4f2e99395e85f6 *NAMESPACE
 2716d0d72e38d5e590b18514087af5f2 *R/filecache.R
-0bbff22d1502f8d2f66f339607e36b6b *build/vignette.rds
+ecd7278297a9adb61b97ca2dce703f46 *build/vignette.rds
 99eda983d991a601baeae1d4e685be52 *inst/doc/pkgfilecache.R
-408252530f6023889b61167299107d41 *inst/doc/pkgfilecache.Rmd
-e987bcca429451dcb06f96d16158457c *inst/doc/pkgfilecache.html
+18d9cb2f3f1f4530e3275a7dd56285cc *inst/doc/pkgfilecache.Rmd
+874339e419b255a23d73a15763561bbe *inst/doc/pkgfilecache.html
 35261471bcd198583c3805ee2a543b1f *inst/extdata/file1.txt
 85ffec2e6efb476f1ee1e3e7fddd86de *inst/extdata/file2.txt
 5eeb8515755e8b7dec44427351dbbe5d *man/are_files_available.Rd
@@ -26,5 +26,5 @@ cb5dad86b5ed0d1b3e6e5ec63b4df1d0 *man/make_pgk_cache_subdir_for_relative_file.Rd
 6342ddbd740559476ad16135807c6723 *man/remove_cached_files.Rd
 4c55f450b7f1880b599adbf1b38412f6 *tests/testthat.R
 46caf0569d383ca97e3ada700b7220b2 *tests/testthat/teardown-cran.R
-e0319bb3daa6e95d718fe4d013ac6dfc *tests/testthat/test-filecache.R
-408252530f6023889b61167299107d41 *vignettes/pkgfilecache.Rmd
+30f9e2f68fdabb1cacbf143d43089d32 *tests/testthat/test-filecache.R
+18d9cb2f3f1f4530e3275a7dd56285cc *vignettes/pkgfilecache.Rmd
